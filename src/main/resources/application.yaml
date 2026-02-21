@@ -1,3 +1,11 @@
 spring:
   application:
     name: resort
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/ocean_view_resort?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  sql:
+    init:
+      mode: always
