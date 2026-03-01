@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean View Resort | Reservations</title>
+    <link rel="stylesheet" href="/css/reservations.css">
+</head>
+<body>
+<main class="layout">
+    <header class="topbar">
+        <div>
+            <p class="brand">Ocean View Resort</p>
+            <h1>Reservation Management</h1>
+        </div>
+        <div class="inline-actions">
+            <button id="openBillingBtn" class="ghost">Billing</button>
+            <button id="helpBtn" class="ghost">Help</button>
+            <button id="exitBtn" class="ghost">Exit</button>
+            <button id="logoutBtn" class="ghost">Logout</button>
+        </div>
+    </header>
+
+    <section class="panel">
+        <h2>Create Reservation</h2>
+        <form id="createForm" class="grid-form" novalidate>
+            <label>Reservation Number
+                <input id="reservationNumber" required placeholder="RES-2001">
+            </label>
+            <label>Guest Name
+                <input id="guestName" required placeholder="Guest full name">
+            </label>
+            <label>Address
+                <input id="address" required placeholder="Address">
+            </label>
+            <label>Contact Number
+                <input id="contactNumber" required placeholder="+94770000000">
+            </label>
+            <label>Room Type
+                <select id="roomType" required>
+                    <option value="">Select room type</option>
+                    <option>Standard</option>
+                    <option>Deluxe</option>
+                    <option>Suite</option>
+                </select>
+            </label>
+            <label>Check-in Date
+                <input id="checkInDate" type="date" required>
+            </label>
+            <label>Check-out Date
+                <input id="checkOutDate" type="date" required>
+            </label>
+            <button type="submit">Add Reservation</button>
+        </form>
+        <p id="createMessage" class="message"></p>
+    </section>
+
+    <section class="panel">
+        <h2>Find Reservation</h2>
+        <div class="inline-actions">
+            <input id="searchReservationNumber" placeholder="Reservation number">
+            <button id="searchBtn">Search</button>
+            <button id="refreshBtn" class="ghost">Refresh List</button>
+        </div>
+        <p id="searchMessage" class="message"></p>
+        <article id="detailsCard" class="details-card hidden" aria-live="polite">
+            <h3>Reservation Details</h3>
+            <dl class="details-grid">
+                <dt>Reservation #</dt>
+                <dd id="detailReservationNumber">-</dd>
+                <dt>Guest Name</dt>
+                <dd id="detailGuestName">-</dd>
+                <dt>Address</dt>
+                <dd id="detailAddress">-</dd>
+                <dt>Contact Number</dt>
+                <dd id="detailContactNumber">-</dd>
+                <dt>Room Type</dt>
+                <dd id="detailRoomType">-</dd>
+                <dt>Check-in Date</dt>
+                <dd id="detailCheckInDate">-</dd>
+                <dt>Check-out Date</dt>
+                <dd id="detailCheckOutDate">-</dd>
+            </dl>
+            <div class="inline-actions">
+                <button id="detailsEditBtn" class="mini">Edit This Reservation</button>
+                <button id="detailsDeleteBtn" class="mini danger">Delete This Reservation</button>
+            </div>
+        </article>
+    </section>
+
+    <section class="panel">
+        <h2>All Reservations</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Reservation #</th>
+                    <th>Guest</th>
+                    <th>Contact</th>
+                    <th>Room</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<dialog id="editDialog">
+    <form id="editForm" method="dialog" class="grid-form">
+        <h3>Edit Reservation</h3>
+        <p id="editReservationNumberLabel"></p>
+        <label>Guest Name
+            <input id="editGuestName" required>
+        </label>
+        <label>Address
+            <input id="editAddress" required>
+        </label>
+        <label>Contact Number
+            <input id="editContactNumber" required>
+        </label>
+        <label>Room Type
+            <select id="editRoomType" required>
+                <option>Standard</option>
+                <option>Deluxe</option>
+                <option>Suite</option>
+            </select>
+        </label>
+        <label>Check-in Date
+            <input id="editCheckInDate" type="date" required>
+        </label>
+        <label>Check-out Date
+            <input id="editCheckOutDate" type="date" required>
+        </label>
+        <div class="dialog-actions">
+            <button type="button" id="cancelEditBtn" class="ghost">Cancel</button>
+            <button type="submit">Save Changes</button>
+        </div>
+        <p id="editMessage" class="message"></p>
+    </form>
+</dialog>
+
+<script>
+    if (sessionStorage.getItem("ovr_logged_in") !== "true") {
+        window.location.href = "/";
+    }
+
+    const createForm = document.getElementById("createForm");
+    const createMessage = document.getElementById("createMessage");
+    const searchMessage = document.getElementById("searchMessage");
+    const tableBody = document.getElementById("tableBody");
+    const detailsCard = document.getElementById("detailsCard");
+    const detailsEditBtn = document.getElementById("detailsEditBtn");
+    const detailsDeleteBtn = document.getElementById("detailsDeleteBtn");
+    const editDialog = document.getElementById("editDialog");
+    const editForm = document.getElementById("editForm");
+    const editMessage = document.getElementById("editMessage");
+    const editReservationNumberLabel = document.getElementById("editReservationNumberLabel");
+    let editingReservationNumber = null;
+    let selectedReservationNumber = null;
+
+    function showMessage(el, text, type) {
+        el.textContent = text;
+        el.className = "message " + type;
+    }
+
+    function asPayload(prefix = "") {
+        return {
+            reservationNumber: document.getElementById(prefix + "reservationNumber")?.value?.trim(),
+            guestName: document.getElementById(prefix + "guestName").value.trim(),
+            address: document.getElementById(prefix + "address").value.trim(),
+            contactNumber: document.getElementById(prefix + "contactNumber").value.trim(),
+            roomType: document.getElementById(prefix + "roomType").value.trim(),
+            checkInDate: document.getElementById(prefix + "checkInDate").value,
+            checkOutDate: document.getElementById(prefix + "checkOutDate").value
+        };
+    }
+
+    function clearReservationDetails() {
+        detailsCard.classList.add("hidden");
+        selectedReservationNumber = null;
+    }
+
+    function setDetail(id, value) {
+        document.getElementById(id).textContent = value || "-";
+    }
+
+    function renderReservationDetails(data) {
+        setDetail("detailReservationNumber", data.reservationNumber);
+        setDetail("detailGuestName", data.guestName);
+        setDetail("detailAddress", data.address);
+        setDetail("detailContactNumber", data.contactNumber);
+        setDetail("detailRoomType", data.roomType);
+        setDetail("detailCheckInDate", data.checkInDate);
+        setDetail("detailCheckOutDate", data.checkOutDate);
+        selectedReservationNumber = data.reservationNumber;
+        detailsCard.classList.remove("hidden");
+    }
+
+    async function loadReservations() {
+        const response = await fetch("/api/v1/reservations");
+        const data = await response.json();
+        tableBody.innerHTML = "";
+
+        if (!Array.isArray(data) || data.length === 0) {
+            tableBody.innerHTML = "<tr><td colspan='7' class='empty'>No reservations available.</td></tr>";
+            return;
+        }
+
+        data.forEach((reservation) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${reservation.reservationNumber}</td>
+                <td>${reservation.guestName}</td>
+                <td>${reservation.contactNumber}</td>
+                <td>${reservation.roomType}</td>
+                <td>${reservation.checkInDate}</td>
+                <td>${reservation.checkOutDate}</td>
+                <td class="actions">
+                    <button data-action="edit" data-id="${reservation.reservationNumber}" class="mini">Edit</button>
+                    <button data-action="delete" data-id="${reservation.reservationNumber}" class="mini danger">Delete</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    async function createReservation(event) {
+        event.preventDefault();
+        showMessage(createMessage, "Saving reservation...", "pending");
+
+        const payload = asPayload();
+        const response = await fetch("/api/v1/reservations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            showMessage(createMessage, "Reservation created successfully.", "success");
+            createForm.reset();
+            await loadReservations();
+            return;
+        }
+
+        showMessage(createMessage, data.message || "Unable to create reservation.", "error");
+    }
+
+    async function findReservation() {
+        const value = document.getElementById("searchReservationNumber").value.trim();
+        if (!value) {
+            showMessage(searchMessage, "Enter a reservation number.", "error");
+            return;
+        }
+        const response = await fetch("/api/v1/reservations/" + encodeURIComponent(value));
+        const data = await response.json();
+        if (!response.ok) {
+            clearReservationDetails();
+            showMessage(searchMessage, data.message || "Reservation not found.", "error");
+            return;
+        }
+        renderReservationDetails(data);
+        showMessage(searchMessage, "Reservation found.", "success");
+    }
+
+    async function deleteReservation(reservationNumber) {
+        if (!confirm("Delete reservation " + reservationNumber + "?")) {
+            return;
+        }
+        const response = await fetch("/api/v1/reservations/" + encodeURIComponent(reservationNumber), {
+            method: "DELETE"
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            alert(data.message || "Unable to delete reservation.");
+            return;
+        }
+        clearReservationDetails();
+        await loadReservations();
+    }
+
+    async function openEditDialog(reservationNumber) {
+        const response = await fetch("/api/v1/reservations/" + encodeURIComponent(reservationNumber));
+        const data = await response.json();
+        if (!response.ok) {
+            alert(data.message || "Reservation not found.");
+            return;
+        }
+
+        editingReservationNumber = reservationNumber;
+        editReservationNumberLabel.textContent = "Reservation: " + reservationNumber;
+        document.getElementById("editGuestName").value = data.guestName;
+        document.getElementById("editAddress").value = data.address;
+        document.getElementById("editContactNumber").value = data.contactNumber;
+        document.getElementById("editRoomType").value = data.roomType;
+        document.getElementById("editCheckInDate").value = data.checkInDate;
+        document.getElementById("editCheckOutDate").value = data.checkOutDate;
+        showMessage(editMessage, "", "pending");
+        editDialog.showModal();
+    }
+
+    async function updateReservation(event) {
+        event.preventDefault();
+        if (!editingReservationNumber) {
+            return;
+        }
+
+        const payload = {
+            guestName: document.getElementById("editGuestName").value.trim(),
+            address: document.getElementById("editAddress").value.trim(),
+            contactNumber: document.getElementById("editContactNumber").value.trim(),
+            roomType: document.getElementById("editRoomType").value.trim(),
+            checkInDate: document.getElementById("editCheckInDate").value,
+            checkOutDate: document.getElementById("editCheckOutDate").value
+        };
+
+        const response = await fetch("/api/v1/reservations/" + encodeURIComponent(editingReservationNumber), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            showMessage(editMessage, data.message || "Unable to update reservation.", "error");
+            return;
+        }
+
+        editDialog.close();
+        editingReservationNumber = null;
+        await loadReservations();
+    }
+
+    createForm.addEventListener("submit", createReservation);
+    document.getElementById("searchBtn").addEventListener("click", findReservation);
+    document.getElementById("refreshBtn").addEventListener("click", loadReservations);
+    detailsEditBtn.addEventListener("click", () => {
+        if (selectedReservationNumber) {
+            openEditDialog(selectedReservationNumber);
+        }
+    });
+    detailsDeleteBtn.addEventListener("click", () => {
+        if (selectedReservationNumber) {
+            deleteReservation(selectedReservationNumber);
+        }
+    });
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+        sessionStorage.removeItem("ovr_logged_in");
+        window.location.href = "/";
+    });
+    document.getElementById("openBillingBtn").addEventListener("click", () => {
+        window.location.href = "/billing.html";
+    });
+    document.getElementById("helpBtn").addEventListener("click", () => {
+        window.location.href = "/help.html";
+    });
+    document.getElementById("exitBtn").addEventListener("click", () => {
+        sessionStorage.removeItem("ovr_logged_in");
+        window.location.href = "/exit.html";
+    });
+    document.getElementById("cancelEditBtn").addEventListener("click", () => {
+        editDialog.close();
+        editingReservationNumber = null;
+    });
+    editForm.addEventListener("submit", updateReservation);
+
+    tableBody.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLButtonElement)) {
+            return;
+        }
+        const reservationNumber = target.getAttribute("data-id");
+        if (!reservationNumber) {
+            return;
+        }
+        const action = target.getAttribute("data-action");
+        if (action === "delete") {
+            deleteReservation(reservationNumber);
+        } else if (action === "edit") {
+            openEditDialog(reservationNumber);
+        }
+    });
+
+    loadReservations();
+</script>
+</body>
+</html>
