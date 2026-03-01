@@ -59,6 +59,10 @@
             if (response.ok && data.success) {
                 message.textContent = data.message;
                 message.className = "message success";
+                sessionStorage.setItem("ovr_logged_in", "true");
+                setTimeout(() => {
+                    window.location.href = "/reservations.html";
+                }, 600);
                 return;
             }
 
