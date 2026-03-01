@@ -22,9 +22,85 @@ body {
     background: linear-gradient(160deg, #eef8ff 0%, #fef8f1 100%);
 }
 
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+}
+
+.side-nav {
+    width: 250px;
+    background: linear-gradient(180deg, #0f2a31 0%, #0d4a53 100%);
+    color: #eff7fa;
+    padding: 22px 14px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 16px;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.side-brand {
+    display: grid;
+    gap: 6px;
+}
+
+.side-brand p {
+    margin: 0;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #9fd7d0;
+    font-weight: 700;
+}
+
+.side-brand h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #ffffff;
+}
+
+.side-links {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+}
+
+.side-link {
+    text-decoration: none;
+    color: #dbeef0;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-weight: 600;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.side-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.side-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+.side-link-danger {
+    color: #ffc0be;
+}
+
+.side-footer {
+    display: grid;
+    gap: 8px;
+}
+
+.side-btn {
+    width: 100%;
+}
+
 .layout {
-    width: min(1160px, 100%);
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     padding: 22px 16px 30px;
     display: grid;
     gap: 14px;
@@ -265,4 +341,20 @@ dialog h3, dialog p { margin: 0; }
 @media (max-width: 700px) {
     h1 { font-size: 1.4rem; }
     .topbar { align-items: flex-start; gap: 12px; flex-direction: column; }
+}
+
+@media (max-width: 900px) {
+    .app-shell {
+        flex-direction: column;
+    }
+
+    .side-nav {
+        width: 100%;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .side-links {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
 }

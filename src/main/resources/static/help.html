@@ -7,55 +7,69 @@
     <link rel="stylesheet" href="/css/reservations.css">
 </head>
 <body>
-<main class="layout">
-    <header class="topbar">
-        <div>
-            <p class="brand">Ocean View Resort</p>
-            <h1>System Help Guide</h1>
+<div class="app-shell">
+    <aside class="side-nav" aria-label="Primary navigation">
+        <div class="side-brand">
+            <p>Ocean View Resort</p>
+            <h2>Staff Panel</h2>
         </div>
-        <div class="inline-actions">
-            <button id="goReservationsBtn" class="ghost">Reservations</button>
-            <button id="goBillingBtn" class="ghost">Billing</button>
-            <button id="goLoginBtn" class="ghost">Login</button>
+        <nav class="side-links">
+            <a id="navReservations" class="side-link" href="/reservations.html">Reservations</a>
+            <a id="navBilling" class="side-link" href="/billing.html">Billing & Invoices</a>
+            <a class="side-link active" href="/help.html">Help Guide</a>
+            <a class="side-link side-link-danger" href="/exit.html">Exit System</a>
+        </nav>
+        <div class="side-footer">
+            <button id="logoutBtn" class="ghost side-btn" type="button">Logout</button>
         </div>
-    </header>
+    </aside>
 
-    <section class="panel">
-        <h2>How To Use This System</h2>
-        <ol class="help-list">
-            <li>Login with your assigned username and password.</li>
-            <li>Open Reservations and add new guest reservation details with a unique reservation number.</li>
-            <li>Use Find Reservation to display full booking details for a guest.</li>
-            <li>Open Billing and create an invoice using reservation number, room rate, nights, and charges.</li>
-            <li>Record guest payments and monitor status as PENDING, PARTIAL, or PAID.</li>
-            <li>Open an invoice and click Print Bill to generate a printable bill for the guest.</li>
-            <li>Use Logout when changing users, or Exit when ending the work session.</li>
-        </ol>
-    </section>
+    <main class="layout">
+        <header class="topbar">
+            <div>
+                <p class="brand">Ocean View Resort</p>
+                <h1>System Help Guide</h1>
+            </div>
+        </header>
 
-    <section class="panel">
-        <h2>Tips For Staff</h2>
-        <ul class="help-list">
-            <li>Always verify check-in and check-out dates before saving a reservation.</li>
-            <li>Use the Refresh buttons to load the latest records.</li>
-            <li>If you get an error message, correct the highlighted input and submit again.</li>
-            <li>Do not share login credentials with unauthorized users.</li>
-        </ul>
-    </section>
-</main>
+        <section class="panel">
+            <h2>How To Use This System</h2>
+            <ol class="help-list">
+                <li>Login with your assigned username and password.</li>
+                <li>Open Reservations and add new guest reservation details with a unique reservation number.</li>
+                <li>Use Find Reservation to display full booking details for a guest.</li>
+                <li>Open Billing and create an invoice using reservation number, room rate, nights, and charges.</li>
+                <li>Record guest payments and monitor status as PENDING, PARTIAL, or PAID.</li>
+                <li>Open an invoice and click Print Bill to generate a printable bill for the guest.</li>
+                <li>Use Logout when changing users, or Exit when ending the work session.</li>
+            </ol>
+        </section>
+
+        <section class="panel">
+            <h2>Tips For Staff</h2>
+            <ul class="help-list">
+                <li>Always verify check-in and check-out dates before saving a reservation.</li>
+                <li>Use the Refresh buttons to load the latest records.</li>
+                <li>If you get an error message, correct the highlighted input and submit again.</li>
+                <li>Do not share login credentials with unauthorized users.</li>
+            </ul>
+        </section>
+    </main>
+</div>
 
 <script>
     const loggedIn = sessionStorage.getItem("ovr_logged_in") === "true";
+    const navReservations = document.getElementById("navReservations");
+    const navBilling = document.getElementById("navBilling");
 
-    document.getElementById("goReservationsBtn").addEventListener("click", () => {
-        window.location.href = loggedIn ? "/reservations.html" : "/";
-    });
+    if (!loggedIn) {
+        navReservations.setAttribute("href", "/");
+        navBilling.setAttribute("href", "/");
+        document.getElementById("logoutBtn").textContent = "Back To Login";
+    }
 
-    document.getElementById("goBillingBtn").addEventListener("click", () => {
-        window.location.href = loggedIn ? "/billing.html" : "/";
-    });
-
-    document.getElementById("goLoginBtn").addEventListener("click", () => {
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+        sessionStorage.removeItem("ovr_logged_in");
         window.location.href = "/";
     });
 </script>
