@@ -49,7 +49,7 @@ A Spring Boot application for managing resort reservations and billing/invoices 
 ## Prerequisites
 
 - JDK 17 or newer
-- Maven (or use included wrapper `mvnw.cmd`)
+- Maven 
 - MySQL running locally (default config) if running the app normally
 
 ## Configuration
@@ -70,8 +70,11 @@ You can override using environment variables:
 
 ## Run the Application
 
-```powershell
-.\mvnw.cmd spring-boot:run
+```Terminal
+
+Clean and install maven dependencies: mvn clean install
+
+Run spring boot app: mvn spring-boot:run
 ```
 
 Open:
@@ -80,8 +83,8 @@ Open:
 
 ## Run Tests
 
-```powershell
-.\mvnw.cmd test
+```Terminal
+.\mvn test
 ```
 
 ## Main API Endpoints
