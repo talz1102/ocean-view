@@ -7,142 +7,154 @@
     <link rel="stylesheet" href="/css/reservations.css">
 </head>
 <body>
-<main class="layout">
-    <header class="topbar">
-        <div>
-            <p class="brand">Ocean View Resort</p>
-            <h1>Billing Management</h1>
+<div class="app-shell">
+    <aside class="side-nav" aria-label="Primary navigation">
+        <div class="side-brand">
+            <p>Ocean View Resort</p>
+            <h2>Staff Panel</h2>
         </div>
-        <div class="inline-actions">
-            <button id="openReservationsBtn" class="ghost">Reservations</button>
-            <button id="helpBtn" class="ghost">Help</button>
-            <button id="exitBtn" class="ghost">Exit</button>
-            <button id="logoutBtn" class="ghost">Logout</button>
+        <nav class="side-links">
+            <a class="side-link" href="/reservations.html">Reservations</a>
+            <a class="side-link active" href="/billing.html">Billing & Invoices</a>
+            <a class="side-link" href="/help.html">Help Guide</a>
+            <a class="side-link side-link-danger" href="/exit.html">Exit System</a>
+        </nav>
+        <div class="side-footer">
+            <button id="logoutBtn" class="ghost side-btn" type="button">Logout</button>
         </div>
-    </header>
+    </aside>
 
-    <section class="panel">
-        <h2>Create Invoice</h2>
-        <form id="invoiceForm" class="grid-form" novalidate>
-            <label>Invoice Number
-                <input id="invoiceNumber" required placeholder="INV-2001">
-            </label>
-            <label>Reservation Number
-                <input id="reservationNumber" required placeholder="RES-1001">
-            </label>
-            <label>Issue Date
-                <input id="issueDate" type="date" required>
-            </label>
-            <label>Due Date
-                <input id="dueDate" type="date" required>
-            </label>
-            <label>Room Rate
-                <input id="roomRate" type="number" min="0" step="0.01" required placeholder="120.00">
-            </label>
-            <label>Nights
-                <input id="nights" type="number" min="1" step="1" required placeholder="4">
-            </label>
-            <label>Extra Charges
-                <input id="extraCharges" type="number" min="0" step="0.01" value="0">
-            </label>
-            <label>Tax Rate (%)
-                <input id="taxRate" type="number" min="0" step="0.01" value="10.00">
-            </label>
-            <label>Discount Amount
-                <input id="discountAmount" type="number" min="0" step="0.01" value="0">
-            </label>
-            <button type="submit">Create Invoice</button>
-        </form>
-        <p id="estimateMessage" class="message pending"></p>
-        <p id="invoiceMessage" class="message"></p>
-    </section>
-
-    <section class="panel">
-        <h2>Find Invoice</h2>
-        <div class="inline-actions">
-            <input id="searchInvoiceNumber" placeholder="Invoice number">
-            <button id="searchBtn">Search</button>
-            <button id="refreshBtn" class="ghost">Refresh List</button>
-        </div>
-        <p id="searchMessage" class="message"></p>
-        <article id="invoiceDetails" class="details-card hidden" aria-live="polite">
-            <h3>Invoice Details</h3>
-            <dl class="details-grid">
-                <dt>Invoice #</dt><dd id="detailInvoiceNumber">-</dd>
-                <dt>Reservation #</dt><dd id="detailReservationNumber">-</dd>
-                <dt>Guest</dt><dd id="detailGuestName">-</dd>
-                <dt>Issue Date</dt><dd id="detailIssueDate">-</dd>
-                <dt>Due Date</dt><dd id="detailDueDate">-</dd>
-                <dt>Total Amount</dt><dd id="detailTotalAmount">-</dd>
-                <dt>Amount Paid</dt><dd id="detailAmountPaid">-</dd>
-                <dt>Balance</dt><dd id="detailBalanceAmount">-</dd>
-                <dt>Status</dt><dd id="detailStatus">-</dd>
-            </dl>
-
-            <div class="inline-actions">
-                <button id="printBillBtn" class="mini">Print Bill</button>
+    <main class="layout">
+        <header class="topbar">
+            <div>
+                <p class="brand">Ocean View Resort</p>
+                <h1>Billing Management</h1>
             </div>
+        </header>
 
-            <h3>Payment History</h3>
+        <section class="panel">
+            <h2>Create Invoice</h2>
+            <form id="invoiceForm" class="grid-form" novalidate>
+                <label>Invoice Number
+                    <input id="invoiceNumber" required placeholder="INV-2001">
+                </label>
+                <label>Reservation Number
+                    <input id="reservationNumber" required placeholder="RES-1001">
+                </label>
+                <label>Issue Date
+                    <input id="issueDate" type="date" required>
+                </label>
+                <label>Due Date
+                    <input id="dueDate" type="date" required>
+                </label>
+                <label>Room Rate
+                    <input id="roomRate" type="number" min="0" step="0.01" required placeholder="120.00">
+                </label>
+                <label>Nights
+                    <input id="nights" type="number" min="1" step="1" required placeholder="4">
+                </label>
+                <label>Extra Charges
+                    <input id="extraCharges" type="number" min="0" step="0.01" value="0">
+                </label>
+                <label>Tax Rate (%)
+                    <input id="taxRate" type="number" min="0" step="0.01" value="10.00">
+                </label>
+                <label>Discount Amount
+                    <input id="discountAmount" type="number" min="0" step="0.01" value="0">
+                </label>
+                <button type="submit">Create Invoice</button>
+            </form>
+            <p id="estimateMessage" class="message pending"></p>
+            <p id="invoiceMessage" class="message"></p>
+        </section>
+
+        <section class="panel">
+            <h2>Find Invoice</h2>
+            <div class="inline-actions">
+                <input id="searchInvoiceNumber" placeholder="Invoice number">
+                <button id="searchBtn">Search</button>
+                <button id="refreshBtn" class="ghost">Refresh List</button>
+            </div>
+            <p id="searchMessage" class="message"></p>
+            <article id="invoiceDetails" class="details-card hidden" aria-live="polite">
+                <h3>Invoice Details</h3>
+                <dl class="details-grid">
+                    <dt>Invoice #</dt><dd id="detailInvoiceNumber">-</dd>
+                    <dt>Reservation #</dt><dd id="detailReservationNumber">-</dd>
+                    <dt>Guest</dt><dd id="detailGuestName">-</dd>
+                    <dt>Issue Date</dt><dd id="detailIssueDate">-</dd>
+                    <dt>Due Date</dt><dd id="detailDueDate">-</dd>
+                    <dt>Total Amount</dt><dd id="detailTotalAmount">-</dd>
+                    <dt>Amount Paid</dt><dd id="detailAmountPaid">-</dd>
+                    <dt>Balance</dt><dd id="detailBalanceAmount">-</dd>
+                    <dt>Status</dt><dd id="detailStatus">-</dd>
+                </dl>
+
+                <div class="inline-actions">
+                    <button id="printBillBtn" class="mini">Print Bill</button>
+                </div>
+
+                <h3>Payment History</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Method</th>
+                            <th>Amount</th>
+                            <th>Notes</th>
+                        </tr>
+                        </thead>
+                        <tbody id="paymentTableBody"></tbody>
+                    </table>
+                </div>
+
+                <h3>Record Payment</h3>
+                <form id="paymentForm" class="grid-form" novalidate>
+                    <label>Amount
+                        <input id="paymentAmount" type="number" min="0.01" step="0.01" required>
+                    </label>
+                    <label>Payment Date
+                        <input id="paymentDate" type="date" required>
+                    </label>
+                    <label>Payment Method
+                        <select id="paymentMethod" required>
+                            <option value="">Select method</option>
+                            <option>CASH</option>
+                            <option>CARD</option>
+                            <option>BANK_TRANSFER</option>
+                        </select>
+                    </label>
+                    <label>Notes
+                        <input id="paymentNotes" placeholder="Optional note">
+                    </label>
+                    <button type="submit">Add Payment</button>
+                </form>
+                <p id="paymentMessage" class="message"></p>
+            </article>
+        </section>
+
+        <section class="panel">
+            <h2>All Invoices</h2>
             <div class="table-wrap">
                 <table>
                     <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Method</th>
-                        <th>Amount</th>
-                        <th>Notes</th>
+                        <th>Invoice #</th>
+                        <th>Reservation #</th>
+                        <th>Guest</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Status</th>
                     </tr>
                     </thead>
-                    <tbody id="paymentTableBody"></tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
-
-            <h3>Record Payment</h3>
-            <form id="paymentForm" class="grid-form" novalidate>
-                <label>Amount
-                    <input id="paymentAmount" type="number" min="0.01" step="0.01" required>
-                </label>
-                <label>Payment Date
-                    <input id="paymentDate" type="date" required>
-                </label>
-                <label>Payment Method
-                    <select id="paymentMethod" required>
-                        <option value="">Select method</option>
-                        <option>CASH</option>
-                        <option>CARD</option>
-                        <option>BANK_TRANSFER</option>
-                    </select>
-                </label>
-                <label>Notes
-                    <input id="paymentNotes" placeholder="Optional note">
-                </label>
-                <button type="submit">Add Payment</button>
-            </form>
-            <p id="paymentMessage" class="message"></p>
-        </article>
-    </section>
-
-    <section class="panel">
-        <h2>All Invoices</h2>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th>Invoice #</th>
-                    <th>Reservation #</th>
-                    <th>Guest</th>
-                    <th>Total</th>
-                    <th>Paid</th>
-                    <th>Balance</th>
-                    <th>Status</th>
-                </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-    </section>
-</main>
+        </section>
+    </main>
+</div>
 
 <script>
     if (sessionStorage.getItem("ovr_logged_in") !== "true") {
@@ -423,16 +435,6 @@
     document.getElementById("logoutBtn").addEventListener("click", () => {
         sessionStorage.removeItem("ovr_logged_in");
         window.location.href = "/";
-    });
-    document.getElementById("openReservationsBtn").addEventListener("click", () => {
-        window.location.href = "/reservations.html";
-    });
-    document.getElementById("helpBtn").addEventListener("click", () => {
-        window.location.href = "/help.html";
-    });
-    document.getElementById("exitBtn").addEventListener("click", () => {
-        sessionStorage.removeItem("ovr_logged_in");
-        window.location.href = "/exit.html";
     });
 
     ["roomRate", "nights", "extraCharges", "taxRate", "discountAmount"].forEach((id) => {

@@ -10,9 +10,12 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 public class ReservationServiceImpl {
+	private static final Pattern RESERVATION_NUMBER_PATTERN = Pattern.compile("^[A-Za-z0-9-]{3,50}$");
+	private static final Pattern CONTACT_NUMBER_PATTERN = Pattern.compile("^\\+?[0-9\\-\\s]{7,30}$");
 	private final JdbcTemplate jdbcTemplate;
 
 	public ReservationServiceImpl(JdbcTemplate jdbcTemplate) {
@@ -117,11 +120,27 @@ public class ReservationServiceImpl {
 		if (request == null) {
 			return "Request body is required.";
 		}
-		if (requireReservationNumber && isBlank(request.reservationNumber())) {
-			return "Reservation number is required.";
+		if (requireReservationNumber) {
+			if (isBlank(request.reservationNumber())) {
+				return "Reservation number is required.";
+			}
+			String reservationNumber = request.reservationNumber().trim();
+			if (!RESERVATION_NUMBER_PATTERN.matcher(reservationNumber).matches()) {
+				return "Reservation number format is invalid.";
+			}
 		}
 		if (isBlank(request.guestName()) || isBlank(request.address()) || isBlank(request.contactNumber()) || isBlank(request.roomType())) {
 			return "Guest name, address, contact number, and room type are required.";
+		}
+		String guestName = request.guestName().trim();
+		String address = request.address().trim();
+		String contactNumber = request.contactNumber().trim();
+		String roomType = request.roomType().trim();
+		if (guestName.length() > 150 || address.length() > 300 || contactNumber.length() > 30 || roomType.length() > 80) {
+			return "One or more fields exceed maximum allowed length.";
+		}
+		if (!CONTACT_NUMBER_PATTERN.matcher(contactNumber).matches()) {
+			return "Contact number format is invalid.";
 		}
 		LocalDate checkInDate = request.checkInDate();
 		LocalDate checkOutDate = request.checkOutDate();

@@ -7,107 +7,119 @@
     <link rel="stylesheet" href="/css/reservations.css">
 </head>
 <body>
-<main class="layout">
-    <header class="topbar">
-        <div>
-            <p class="brand">Ocean View Resort</p>
-            <h1>Reservation Management</h1>
+<div class="app-shell">
+    <aside class="side-nav" aria-label="Primary navigation">
+        <div class="side-brand">
+            <p>Ocean View Resort</p>
+            <h2>Staff Panel</h2>
         </div>
-        <div class="inline-actions">
-            <button id="openBillingBtn" class="ghost">Billing</button>
-            <button id="helpBtn" class="ghost">Help</button>
-            <button id="exitBtn" class="ghost">Exit</button>
-            <button id="logoutBtn" class="ghost">Logout</button>
+        <nav class="side-links">
+            <a class="side-link active" href="/reservations.html">Reservations</a>
+            <a class="side-link" href="/billing.html">Billing & Invoices</a>
+            <a class="side-link" href="/help.html">Help Guide</a>
+            <a class="side-link side-link-danger" href="/exit.html">Exit System</a>
+        </nav>
+        <div class="side-footer">
+            <button id="logoutBtn" class="ghost side-btn" type="button">Logout</button>
         </div>
-    </header>
+    </aside>
 
-    <section class="panel">
-        <h2>Create Reservation</h2>
-        <form id="createForm" class="grid-form" novalidate>
-            <label>Reservation Number
-                <input id="reservationNumber" required placeholder="RES-2001">
-            </label>
-            <label>Guest Name
-                <input id="guestName" required placeholder="Guest full name">
-            </label>
-            <label>Address
-                <input id="address" required placeholder="Address">
-            </label>
-            <label>Contact Number
-                <input id="contactNumber" required placeholder="+94770000000">
-            </label>
-            <label>Room Type
-                <select id="roomType" required>
-                    <option value="">Select room type</option>
-                    <option>Standard</option>
-                    <option>Deluxe</option>
-                    <option>Suite</option>
-                </select>
-            </label>
-            <label>Check-in Date
-                <input id="checkInDate" type="date" required>
-            </label>
-            <label>Check-out Date
-                <input id="checkOutDate" type="date" required>
-            </label>
-            <button type="submit">Add Reservation</button>
-        </form>
-        <p id="createMessage" class="message"></p>
-    </section>
-
-    <section class="panel">
-        <h2>Find Reservation</h2>
-        <div class="inline-actions">
-            <input id="searchReservationNumber" placeholder="Reservation number">
-            <button id="searchBtn">Search</button>
-            <button id="refreshBtn" class="ghost">Refresh List</button>
-        </div>
-        <p id="searchMessage" class="message"></p>
-        <article id="detailsCard" class="details-card hidden" aria-live="polite">
-            <h3>Reservation Details</h3>
-            <dl class="details-grid">
-                <dt>Reservation #</dt>
-                <dd id="detailReservationNumber">-</dd>
-                <dt>Guest Name</dt>
-                <dd id="detailGuestName">-</dd>
-                <dt>Address</dt>
-                <dd id="detailAddress">-</dd>
-                <dt>Contact Number</dt>
-                <dd id="detailContactNumber">-</dd>
-                <dt>Room Type</dt>
-                <dd id="detailRoomType">-</dd>
-                <dt>Check-in Date</dt>
-                <dd id="detailCheckInDate">-</dd>
-                <dt>Check-out Date</dt>
-                <dd id="detailCheckOutDate">-</dd>
-            </dl>
-            <div class="inline-actions">
-                <button id="detailsEditBtn" class="mini">Edit This Reservation</button>
-                <button id="detailsDeleteBtn" class="mini danger">Delete This Reservation</button>
+    <main class="layout">
+        <header class="topbar">
+            <div>
+                <p class="brand">Ocean View Resort</p>
+                <h1>Reservation Management</h1>
             </div>
-        </article>
-    </section>
+        </header>
 
-    <section class="panel">
-        <h2>All Reservations</h2>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th>Reservation #</th>
-                    <th>Guest</th>
-                    <th>Contact</th>
-                    <th>Room</th>
-                    <th>Check-in</th>
-                    <th>Check-out</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-    </section>
-</main>
+        <section class="panel">
+            <h2>Create Reservation</h2>
+            <form id="createForm" class="grid-form" novalidate>
+                <label>Reservation Number
+                    <input id="reservationNumber" required placeholder="RES-2001">
+                </label>
+                <label>Guest Name
+                    <input id="guestName" required placeholder="Guest full name">
+                </label>
+                <label>Address
+                    <input id="address" required placeholder="Address">
+                </label>
+                <label>Contact Number
+                    <input id="contactNumber" required placeholder="+94770000000">
+                </label>
+                <label>Room Type
+                    <select id="roomType" required>
+                        <option value="">Select room type</option>
+                        <option>Standard</option>
+                        <option>Deluxe</option>
+                        <option>Suite</option>
+                    </select>
+                </label>
+                <label>Check-in Date
+                    <input id="checkInDate" type="date" required>
+                </label>
+                <label>Check-out Date
+                    <input id="checkOutDate" type="date" required>
+                </label>
+                <button type="submit">Add Reservation</button>
+            </form>
+            <p id="createMessage" class="message"></p>
+        </section>
+
+        <section class="panel">
+            <h2>Find Reservation</h2>
+            <div class="inline-actions">
+                <input id="searchReservationNumber" placeholder="Reservation number">
+                <button id="searchBtn">Search</button>
+                <button id="refreshBtn" class="ghost">Refresh List</button>
+            </div>
+            <p id="searchMessage" class="message"></p>
+            <article id="detailsCard" class="details-card hidden" aria-live="polite">
+                <h3>Reservation Details</h3>
+                <dl class="details-grid">
+                    <dt>Reservation #</dt>
+                    <dd id="detailReservationNumber">-</dd>
+                    <dt>Guest Name</dt>
+                    <dd id="detailGuestName">-</dd>
+                    <dt>Address</dt>
+                    <dd id="detailAddress">-</dd>
+                    <dt>Contact Number</dt>
+                    <dd id="detailContactNumber">-</dd>
+                    <dt>Room Type</dt>
+                    <dd id="detailRoomType">-</dd>
+                    <dt>Check-in Date</dt>
+                    <dd id="detailCheckInDate">-</dd>
+                    <dt>Check-out Date</dt>
+                    <dd id="detailCheckOutDate">-</dd>
+                </dl>
+                <div class="inline-actions">
+                    <button id="detailsEditBtn" class="mini">Edit This Reservation</button>
+                    <button id="detailsDeleteBtn" class="mini danger">Delete This Reservation</button>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel">
+            <h2>All Reservations</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Reservation #</th>
+                        <th>Guest</th>
+                        <th>Contact</th>
+                        <th>Room</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
 
 <dialog id="editDialog">
     <form id="editForm" method="dialog" class="grid-form">
@@ -350,16 +362,6 @@
     document.getElementById("logoutBtn").addEventListener("click", () => {
         sessionStorage.removeItem("ovr_logged_in");
         window.location.href = "/";
-    });
-    document.getElementById("openBillingBtn").addEventListener("click", () => {
-        window.location.href = "/billing.html";
-    });
-    document.getElementById("helpBtn").addEventListener("click", () => {
-        window.location.href = "/help.html";
-    });
-    document.getElementById("exitBtn").addEventListener("click", () => {
-        sessionStorage.removeItem("ovr_logged_in");
-        window.location.href = "/exit.html";
     });
     document.getElementById("cancelEditBtn").addEventListener("click", () => {
         editDialog.close();

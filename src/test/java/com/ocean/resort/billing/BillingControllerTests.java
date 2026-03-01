@@ -76,4 +76,20 @@ class BillingControllerTests {
 				.andExpect(jsonPath("$.amountPaid").value(564.00))
 				.andExpect(jsonPath("$.balanceAmount").value(0.00));
 	}
+
+	@Test
+	void shouldRejectUnsupportedPaymentMethod() throws Exception {
+		mockMvc.perform(post("/api/v1/billing/invoices/INV-1001/payments")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "amount": 100.00,
+								  "paymentDate": "2026-03-03",
+								  "paymentMethod": "CHEQUE",
+								  "notes": "Invalid method test"
+								}
+								"""))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.message").value("Unsupported payment method."));
+	}
 }
