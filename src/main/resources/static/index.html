@@ -23,14 +23,20 @@
             <button type="submit">Login</button>
         </form>
 
+        <div class="inline-actions">
+            <button id="helpBtn" type="button" class="ghost-btn">Help</button>
+            <button id="exitBtn" type="button" class="ghost-btn">Exit</button>
+        </div>
+
         <p id="message" class="message" aria-live="polite"></p>
-        <!--<p class="hint">Demo credentials: <strong>admin / admin123</strong></p> -->
     </section>
 </main>
 
 <script>
     const loginForm = document.getElementById("loginForm");
     const message = document.getElementById("message");
+    const helpBtn = document.getElementById("helpBtn");
+    const exitBtn = document.getElementById("exitBtn");
 
     loginForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -72,6 +78,15 @@
             message.textContent = "Unable to connect to server.";
             message.className = "message error";
         }
+    });
+
+    helpBtn.addEventListener("click", () => {
+        window.location.href = "/help.html";
+    });
+
+    exitBtn.addEventListener("click", () => {
+        sessionStorage.removeItem("ovr_logged_in");
+        window.location.href = "/exit.html";
     });
 </script>
 </body>

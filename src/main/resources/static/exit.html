@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean View Resort | Exit</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<main class="page">
+    <section class="card">
+        <p class="eyebrow">Ocean View Resort</p>
+        <h1>System Closed</h1>
+        <p class="subtitle">You have exited the reservation system safely.</p>
+        <p class="hint">You can now close this browser tab or log in again when needed.</p>
+        <div class="inline-actions">
+            <button id="loginAgainBtn" type="button">Login Again</button>
+        </div>
+    </section>
+</main>
+
+<script>
+    sessionStorage.removeItem("ovr_logged_in");
+    document.getElementById("loginAgainBtn").addEventListener("click", () => {
+        window.location.href = "/";
+    });
+</script>
+</body>
+</html>
