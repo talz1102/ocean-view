@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean View Resort | Help</title>
+    <link rel="stylesheet" href="/css/reservations.css">
+</head>
+<body>
+<main class="layout">
+    <header class="topbar">
+        <div>
+            <p class="brand">Ocean View Resort</p>
+            <h1>System Help Guide</h1>
+        </div>
+        <div class="inline-actions">
+            <button id="goReservationsBtn" class="ghost">Reservations</button>
+            <button id="goBillingBtn" class="ghost">Billing</button>
+            <button id="goLoginBtn" class="ghost">Login</button>
+        </div>
+    </header>
+
+    <section class="panel">
+        <h2>How To Use This System</h2>
+        <ol class="help-list">
+            <li>Login with your assigned username and password.</li>
+            <li>Open Reservations and add new guest reservation details with a unique reservation number.</li>
+            <li>Use Find Reservation to display full booking details for a guest.</li>
+            <li>Open Billing and create an invoice using reservation number, room rate, nights, and charges.</li>
+            <li>Record guest payments and monitor status as PENDING, PARTIAL, or PAID.</li>
+            <li>Open an invoice and click Print Bill to generate a printable bill for the guest.</li>
+            <li>Use Logout when changing users, or Exit when ending the work session.</li>
+        </ol>
+    </section>
+
+    <section class="panel">
+        <h2>Tips For Staff</h2>
+        <ul class="help-list">
+            <li>Always verify check-in and check-out dates before saving a reservation.</li>
+            <li>Use the Refresh buttons to load the latest records.</li>
+            <li>If you get an error message, correct the highlighted input and submit again.</li>
+            <li>Do not share login credentials with unauthorized users.</li>
+        </ul>
+    </section>
+</main>
+
+<script>
+    const loggedIn = sessionStorage.getItem("ovr_logged_in") === "true";
+
+    document.getElementById("goReservationsBtn").addEventListener("click", () => {
+        window.location.href = loggedIn ? "/reservations.html" : "/";
+    });
+
+    document.getElementById("goBillingBtn").addEventListener("click", () => {
+        window.location.href = loggedIn ? "/billing.html" : "/";
+    });
+
+    document.getElementById("goLoginBtn").addEventListener("click", () => {
+        window.location.href = "/";
+    });
+</script>
+</body>
+</html>

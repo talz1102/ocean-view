@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean View Resort | Billing</title>
+    <link rel="stylesheet" href="/css/reservations.css">
+</head>
+<body>
+<main class="layout">
+    <header class="topbar">
+        <div>
+            <p class="brand">Ocean View Resort</p>
+            <h1>Billing Management</h1>
+        </div>
+        <div class="inline-actions">
+            <button id="openReservationsBtn" class="ghost">Reservations</button>
+            <button id="helpBtn" class="ghost">Help</button>
+            <button id="exitBtn" class="ghost">Exit</button>
+            <button id="logoutBtn" class="ghost">Logout</button>
+        </div>
+    </header>
+
+    <section class="panel">
+        <h2>Create Invoice</h2>
+        <form id="invoiceForm" class="grid-form" novalidate>
+            <label>Invoice Number
+                <input id="invoiceNumber" required placeholder="INV-2001">
+            </label>
+            <label>Reservation Number
+                <input id="reservationNumber" required placeholder="RES-1001">
+            </label>
+            <label>Issue Date
+                <input id="issueDate" type="date" required>
+            </label>
+            <label>Due Date
+                <input id="dueDate" type="date" required>
+            </label>
+            <label>Room Rate
+                <input id="roomRate" type="number" min="0" step="0.01" required placeholder="120.00">
+            </label>
+            <label>Nights
+                <input id="nights" type="number" min="1" step="1" required placeholder="4">
+            </label>
+            <label>Extra Charges
+                <input id="extraCharges" type="number" min="0" step="0.01" value="0">
+            </label>
+            <label>Tax Rate (%)
+                <input id="taxRate" type="number" min="0" step="0.01" value="10.00">
+            </label>
+            <label>Discount Amount
+                <input id="discountAmount" type="number" min="0" step="0.01" value="0">
+            </label>
+            <button type="submit">Create Invoice</button>
+        </form>
+        <p id="estimateMessage" class="message pending"></p>
+        <p id="invoiceMessage" class="message"></p>
+    </section>
+
+    <section class="panel">
+        <h2>Find Invoice</h2>
+        <div class="inline-actions">
+            <input id="searchInvoiceNumber" placeholder="Invoice number">
+            <button id="searchBtn">Search</button>
+            <button id="refreshBtn" class="ghost">Refresh List</button>
+        </div>
+        <p id="searchMessage" class="message"></p>
+        <article id="invoiceDetails" class="details-card hidden" aria-live="polite">
+            <h3>Invoice Details</h3>
+            <dl class="details-grid">
+                <dt>Invoice #</dt><dd id="detailInvoiceNumber">-</dd>
+                <dt>Reservation #</dt><dd id="detailReservationNumber">-</dd>
+                <dt>Guest</dt><dd id="detailGuestName">-</dd>
+                <dt>Issue Date</dt><dd id="detailIssueDate">-</dd>
+                <dt>Due Date</dt><dd id="detailDueDate">-</dd>
+                <dt>Total Amount</dt><dd id="detailTotalAmount">-</dd>
+                <dt>Amount Paid</dt><dd id="detailAmountPaid">-</dd>
+                <dt>Balance</dt><dd id="detailBalanceAmount">-</dd>
+                <dt>Status</dt><dd id="detailStatus">-</dd>
+            </dl>
+
+            <div class="inline-actions">
+                <button id="printBillBtn" class="mini">Print Bill</button>
+            </div>
+
+            <h3>Payment History</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Method</th>
+                        <th>Amount</th>
+                        <th>Notes</th>
+                    </tr>
+                    </thead>
+                    <tbody id="paymentTableBody"></tbody>
+                </table>
+            </div>
+
+            <h3>Record Payment</h3>
+            <form id="paymentForm" class="grid-form" novalidate>
+                <label>Amount
+                    <input id="paymentAmount" type="number" min="0.01" step="0.01" required>
+                </label>
+                <label>Payment Date
+                    <input id="paymentDate" type="date" required>
+                </label>
+                <label>Payment Method
+                    <select id="paymentMethod" required>
+                        <option value="">Select method</option>
+                        <option>CASH</option>
+                        <option>CARD</option>
+                        <option>BANK_TRANSFER</option>
+                    </select>
+                </label>
+                <label>Notes
+                    <input id="paymentNotes" placeholder="Optional note">
+                </label>
+                <button type="submit">Add Payment</button>
+            </form>
+            <p id="paymentMessage" class="message"></p>
+        </article>
+    </section>
+
+    <section class="panel">
+        <h2>All Invoices</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Reservation #</th>
+                    <th>Guest</th>
+                    <th>Total</th>
+                    <th>Paid</th>
+                    <th>Balance</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<script>
+    if (sessionStorage.getItem("ovr_logged_in") !== "true") {
+        window.location.href = "/";
+    }
+
+    const invoiceForm = document.getElementById("invoiceForm");
+    const invoiceMessage = document.getElementById("invoiceMessage");
+    const estimateMessage = document.getElementById("estimateMessage");
+    const searchMessage = document.getElementById("searchMessage");
+    const paymentMessage = document.getElementById("paymentMessage");
+    const tableBody = document.getElementById("tableBody");
+    const paymentTableBody = document.getElementById("paymentTableBody");
+    const invoiceDetails = document.getElementById("invoiceDetails");
+    const paymentForm = document.getElementById("paymentForm");
+    const printBillBtn = document.getElementById("printBillBtn");
+
+    let selectedInvoice = null;
+
+    function showMessage(el, text, type) {
+        el.textContent = text;
+        el.className = "message " + type;
+    }
+
+    function currency(value) {
+        if (value === undefined || value === null) {
+            return "-";
+        }
+        return "$" + Number(value).toFixed(2);
+    }
+
+    function setDetail(id, value) {
+        document.getElementById(id).textContent = value || "-";
+    }
+
+    function clearDetails() {
+        selectedInvoice = null;
+        invoiceDetails.classList.add("hidden");
+        paymentTableBody.innerHTML = "";
+    }
+
+    function renderPayments(payments) {
+        paymentTableBody.innerHTML = "";
+        if (!Array.isArray(payments) || payments.length === 0) {
+            paymentTableBody.innerHTML = "<tr><td colspan='4' class='empty'>No payments recorded.</td></tr>";
+            return;
+        }
+
+        payments.forEach((payment) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${payment.paymentDate || "-"}</td>
+                <td>${payment.paymentMethod || "-"}</td>
+                <td>${currency(payment.amount)}</td>
+                <td>${payment.notes || "-"}</td>
+            `;
+            paymentTableBody.appendChild(row);
+        });
+    }
+
+    function renderDetails(invoice) {
+        selectedInvoice = invoice;
+        setDetail("detailInvoiceNumber", invoice.invoiceNumber);
+        setDetail("detailReservationNumber", invoice.reservationNumber);
+        setDetail("detailGuestName", invoice.guestName);
+        setDetail("detailIssueDate", invoice.issueDate);
+        setDetail("detailDueDate", invoice.dueDate);
+        setDetail("detailTotalAmount", currency(invoice.totalAmount));
+        setDetail("detailAmountPaid", currency(invoice.amountPaid));
+        setDetail("detailBalanceAmount", currency(invoice.balanceAmount));
+        setDetail("detailStatus", invoice.status);
+        renderPayments(invoice.payments);
+        invoiceDetails.classList.remove("hidden");
+    }
+
+    function calculateEstimate() {
+        const roomRate = Number(document.getElementById("roomRate").value || 0);
+        const nights = Number(document.getElementById("nights").value || 0);
+        const extra = Number(document.getElementById("extraCharges").value || 0);
+        const taxRate = Number(document.getElementById("taxRate").value || 0);
+        const discount = Number(document.getElementById("discountAmount").value || 0);
+
+        let subtotal = roomRate * nights + extra - discount;
+        if (subtotal < 0) {
+            subtotal = 0;
+        }
+        const tax = subtotal * (taxRate / 100);
+        const total = subtotal + tax;
+
+        estimateMessage.textContent = "Estimated total: " + currency(total) + " (Subtotal " + currency(subtotal) + ", Tax " + currency(tax) + ")";
+    }
+
+    function printBill() {
+        if (!selectedInvoice) {
+            return;
+        }
+
+        const paymentRows = Array.isArray(selectedInvoice.payments) && selectedInvoice.payments.length > 0
+            ? selectedInvoice.payments.map((p) => `
+                <tr>
+                    <td>${p.paymentDate || "-"}</td>
+                    <td>${p.paymentMethod || "-"}</td>
+                    <td>${currency(p.amount)}</td>
+                    <td>${p.notes || "-"}</td>
+                </tr>
+            `).join("")
+            : "<tr><td colspan='4'>No payments recorded.</td></tr>";
+
+        const html = `
+            <html>
+            <head>
+                <title>Invoice ${selectedInvoice.invoiceNumber}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 24px; color: #16232d; }
+                    h1 { margin-bottom: 4px; }
+                    p { margin: 4px 0; }
+                    .meta { margin-bottom: 14px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+                    th, td { border: 1px solid #ccd8de; padding: 8px; text-align: left; }
+                    th { background: #eef5f8; }
+                </style>
+            </head>
+            <body>
+                <h1>Ocean View Resort</h1>
+                <p class="meta">Beach Road, Galle</p>
+                <h2>Invoice ${selectedInvoice.invoiceNumber}</h2>
+                <p><strong>Reservation:</strong> ${selectedInvoice.reservationNumber}</p>
+                <p><strong>Guest:</strong> ${selectedInvoice.guestName}</p>
+                <p><strong>Issue Date:</strong> ${selectedInvoice.issueDate}</p>
+                <p><strong>Due Date:</strong> ${selectedInvoice.dueDate}</p>
+                <p><strong>Total Amount:</strong> ${currency(selectedInvoice.totalAmount)}</p>
+                <p><strong>Amount Paid:</strong> ${currency(selectedInvoice.amountPaid)}</p>
+                <p><strong>Balance:</strong> ${currency(selectedInvoice.balanceAmount)}</p>
+                <p><strong>Status:</strong> ${selectedInvoice.status}</p>
+
+                <h3>Payments</h3>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Method</th>
+                        <th>Amount</th>
+                        <th>Notes</th>
+                    </tr>
+                    </thead>
+                    <tbody>${paymentRows}</tbody>
+                </table>
+            </body>
+            </html>
+        `;
+
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) {
+            alert("Please allow popups to print bills.");
+            return;
+        }
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    }
+
+    async function loadInvoices() {
+        const response = await fetch("/api/v1/billing/invoices");
+        const data = await response.json();
+        tableBody.innerHTML = "";
+
+        if (!Array.isArray(data) || data.length === 0) {
+            tableBody.innerHTML = "<tr><td colspan='7' class='empty'>No invoices available.</td></tr>";
+            return;
+        }
+
+        data.forEach((invoice) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><button class="link-btn" data-id="${invoice.invoiceNumber}">${invoice.invoiceNumber}</button></td>
+                <td>${invoice.reservationNumber}</td>
+                <td>${invoice.guestName}</td>
+                <td>${currency(invoice.totalAmount)}</td>
+                <td>${currency(invoice.amountPaid)}</td>
+                <td>${currency(invoice.balanceAmount)}</td>
+                <td><span class="status ${invoice.status.toLowerCase()}">${invoice.status}</span></td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    async function createInvoice(event) {
+        event.preventDefault();
+        showMessage(invoiceMessage, "Creating invoice...", "pending");
+
+        const payload = {
+            invoiceNumber: document.getElementById("invoiceNumber").value.trim(),
+            reservationNumber: document.getElementById("reservationNumber").value.trim(),
+            issueDate: document.getElementById("issueDate").value,
+            dueDate: document.getElementById("dueDate").value,
+            roomRate: Number(document.getElementById("roomRate").value),
+            nights: Number(document.getElementById("nights").value),
+            extraCharges: Number(document.getElementById("extraCharges").value || 0),
+            taxRate: Number(document.getElementById("taxRate").value || 0),
+            discountAmount: Number(document.getElementById("discountAmount").value || 0)
+        };
+
+        const response = await fetch("/api/v1/billing/invoices", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            showMessage(invoiceMessage, data.message || "Unable to create invoice.", "error");
+            return;
+        }
+
+        showMessage(invoiceMessage, "Invoice created successfully.", "success");
+        invoiceForm.reset();
+        calculateEstimate();
+        renderDetails(data);
+        await loadInvoices();
+    }
+
+    async function findInvoice(invoiceNumber) {
+        const response = await fetch("/api/v1/billing/invoices/" + encodeURIComponent(invoiceNumber));
+        const data = await response.json();
+        if (!response.ok) {
+            clearDetails();
+            showMessage(searchMessage, data.message || "Invoice not found.", "error");
+            return;
+        }
+        renderDetails(data);
+        showMessage(searchMessage, "Invoice found.", "success");
+    }
+
+    async function addPayment(event) {
+        event.preventDefault();
+        if (!selectedInvoice) {
+            return;
+        }
+
+        showMessage(paymentMessage, "Recording payment...", "pending");
+
+        const payload = {
+            amount: Number(document.getElementById("paymentAmount").value),
+            paymentDate: document.getElementById("paymentDate").value,
+            paymentMethod: document.getElementById("paymentMethod").value,
+            notes: document.getElementById("paymentNotes").value.trim()
+        };
+
+        const response = await fetch("/api/v1/billing/invoices/" + encodeURIComponent(selectedInvoice.invoiceNumber) + "/payments", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            showMessage(paymentMessage, data.message || "Unable to record payment.", "error");
+            return;
+        }
+
+        showMessage(paymentMessage, "Payment recorded.", "success");
+        paymentForm.reset();
+        renderDetails(data);
+        await loadInvoices();
+    }
+
+    document.getElementById("searchBtn").addEventListener("click", async () => {
+        const invoiceNumber = document.getElementById("searchInvoiceNumber").value.trim();
+        if (!invoiceNumber) {
+            showMessage(searchMessage, "Enter an invoice number.", "error");
+            return;
+        }
+        await findInvoice(invoiceNumber);
+    });
+
+    document.getElementById("refreshBtn").addEventListener("click", loadInvoices);
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+        sessionStorage.removeItem("ovr_logged_in");
+        window.location.href = "/";
+    });
+    document.getElementById("openReservationsBtn").addEventListener("click", () => {
+        window.location.href = "/reservations.html";
+    });
+    document.getElementById("helpBtn").addEventListener("click", () => {
+        window.location.href = "/help.html";
+    });
+    document.getElementById("exitBtn").addEventListener("click", () => {
+        sessionStorage.removeItem("ovr_logged_in");
+        window.location.href = "/exit.html";
+    });
+
+    ["roomRate", "nights", "extraCharges", "taxRate", "discountAmount"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", calculateEstimate);
+    });
+
+    invoiceForm.addEventListener("submit", createInvoice);
+    paymentForm.addEventListener("submit", addPayment);
+    printBillBtn.addEventListener("click", printBill);
+
+    tableBody.addEventListener("click", async (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLButtonElement)) {
+            return;
+        }
+        const invoiceNumber = target.getAttribute("data-id");
+        if (invoiceNumber) {
+            await findInvoice(invoiceNumber);
+        }
+    });
+
+    calculateEstimate();
+    loadInvoices();
+</script>
+</body>
+</html>
