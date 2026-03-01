@@ -7,6 +7,7 @@ import com.ocean.resort.dto.response.InvoiceResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -14,6 +15,8 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @Service
 public class BillingServiceImpl {
@@ -21,6 +24,9 @@ public class BillingServiceImpl {
 	private static final String STATUS_PENDING = "PENDING";
 	private static final String STATUS_PARTIAL = "PARTIAL";
 	private static final String STATUS_PAID = "PAID";
+	private static final Pattern INVOICE_NUMBER_PATTERN = Pattern.compile("^[A-Za-z0-9-]{3,50}$");
+	private static final Pattern RESERVATION_NUMBER_PATTERN = Pattern.compile("^[A-Za-z0-9-]{3,50}$");
+	private static final Set<String> ALLOWED_PAYMENT_METHODS = Set.of("CASH", "CARD", "BANK_TRANSFER");
 
 	private final JdbcTemplate jdbcTemplate;
 
@@ -128,18 +134,24 @@ public class BillingServiceImpl {
 				.orElseThrow(() -> new IllegalStateException("Invoice created but unable to fetch it."));
 	}
 
+	@Transactional
 	public Optional<InvoiceResponse> addPayment(String invoiceNumber, PaymentRequest request) {
-		Optional<InvoiceTotals> totals = findInvoiceTotals(invoiceNumber);
-		if (totals.isEmpty()) {
+		String normalizedInvoiceNumber = invoiceNumber == null ? "" : invoiceNumber.trim();
+		Optional<InvoicePaymentContext> context = findInvoicePaymentContext(normalizedInvoiceNumber);
+		if (context.isEmpty()) {
 			return Optional.empty();
 		}
 
-		InvoiceTotals current = totals.get();
+		InvoicePaymentContext current = context.get();
 		BigDecimal paymentAmount = normalizeMoney(request.amount());
 		BigDecimal nextAmountPaid = current.amountPaid().add(paymentAmount).setScale(2, RoundingMode.HALF_UP);
 		if (nextAmountPaid.compareTo(current.totalAmount()) > 0) {
 			throw new IllegalArgumentException("Payment exceeds outstanding balance.");
 		}
+		if (request.paymentDate().isBefore(current.issueDate())) {
+			throw new IllegalArgumentException("Payment date cannot be before invoice issue date.");
+		}
+		String paymentMethod = request.paymentMethod().trim().toUpperCase();
 
 		String insertPaymentSql = """
 				INSERT INTO invoice_payments (invoice_number, payment_date, amount, payment_method, notes)
@@ -147,10 +159,10 @@ public class BillingServiceImpl {
 				""";
 		jdbcTemplate.update(
 				insertPaymentSql,
-				invoiceNumber,
+				normalizedInvoiceNumber,
 				Date.valueOf(request.paymentDate()),
 				paymentAmount,
-				request.paymentMethod().trim(),
+				paymentMethod,
 				normalizeNotes(request.notes())
 		);
 
@@ -160,9 +172,9 @@ public class BillingServiceImpl {
 				SET amount_paid = ?, status = ?
 				WHERE invoice_number = ?
 				""";
-		jdbcTemplate.update(updateInvoiceSql, nextAmountPaid, nextStatus, invoiceNumber);
+		jdbcTemplate.update(updateInvoiceSql, nextAmountPaid, nextStatus, normalizedInvoiceNumber);
 
-		return findByInvoiceNumber(invoiceNumber);
+		return findByInvoiceNumber(normalizedInvoiceNumber);
 	}
 
 	public String validateInvoiceRequest(InvoiceRequest request) {
@@ -171,6 +183,11 @@ public class BillingServiceImpl {
 		}
 		if (isBlank(request.invoiceNumber()) || isBlank(request.reservationNumber())) {
 			return "Invoice number and reservation number are required.";
+		}
+		String invoiceNumber = request.invoiceNumber().trim();
+		String reservationNumber = request.reservationNumber().trim();
+		if (!INVOICE_NUMBER_PATTERN.matcher(invoiceNumber).matches() || !RESERVATION_NUMBER_PATTERN.matcher(reservationNumber).matches()) {
+			return "Invoice number or reservation number format is invalid.";
 		}
 		if (request.issueDate() == null || request.dueDate() == null) {
 			return "Issue date and due date are required.";
@@ -190,6 +207,9 @@ public class BillingServiceImpl {
 				request.taxRate().compareTo(BigDecimal.ZERO) < 0) {
 			return "Rates and amounts cannot be negative.";
 		}
+		if (request.taxRate().compareTo(ONE_HUNDRED) > 0) {
+			return "Tax rate cannot be greater than 100.";
+		}
 		return null;
 	}
 
@@ -206,14 +226,22 @@ public class BillingServiceImpl {
 		if (isBlank(request.paymentMethod())) {
 			return "Payment method is required.";
 		}
+		String paymentMethod = request.paymentMethod().trim().toUpperCase();
+		if (!ALLOWED_PAYMENT_METHODS.contains(paymentMethod)) {
+			return "Unsupported payment method.";
+		}
+		if (request.notes() != null && request.notes().trim().length() > 250) {
+			return "Notes cannot exceed 250 characters.";
+		}
 		return null;
 	}
 
-	private Optional<InvoiceTotals> findInvoiceTotals(String invoiceNumber) {
-		String sql = "SELECT total_amount, amount_paid FROM invoices WHERE invoice_number = ?";
-		return jdbcTemplate.query(sql, (rs, rowNum) -> new InvoiceTotals(
+	private Optional<InvoicePaymentContext> findInvoicePaymentContext(String invoiceNumber) {
+		String sql = "SELECT total_amount, amount_paid, issue_date FROM invoices WHERE invoice_number = ?";
+		return jdbcTemplate.query(sql, (rs, rowNum) -> new InvoicePaymentContext(
 				rs.getBigDecimal("total_amount"),
-				rs.getBigDecimal("amount_paid")
+				rs.getBigDecimal("amount_paid"),
+				rs.getDate("issue_date").toLocalDate()
 		), invoiceNumber).stream().findFirst();
 	}
 
@@ -308,6 +336,6 @@ public class BillingServiceImpl {
 		return value == null || value.isBlank();
 	}
 
-	private record InvoiceTotals(BigDecimal totalAmount, BigDecimal amountPaid) {
+	private record InvoicePaymentContext(BigDecimal totalAmount, BigDecimal amountPaid, LocalDate issueDate) {
 	}
 }

@@ -114,4 +114,23 @@ class ReservationControllerTests {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.message").value("Reservation deleted successfully."));
 	}
+
+	@Test
+	void shouldRejectInvalidContactNumber() throws Exception {
+		mockMvc.perform(post("/api/v1/reservations")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "reservationNumber": "RES-9022",
+								  "guestName": "Invalid Contact",
+								  "address": "Galle",
+								  "contactNumber": "ABC123",
+								  "roomType": "Suite",
+								  "checkInDate": "2026-04-10",
+								  "checkOutDate": "2026-04-12"
+								}
+								"""))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.message").value("Contact number format is invalid."));
+	}
 }
